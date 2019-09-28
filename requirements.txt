@@ -1,0 +1,8 @@
+requests
+web3
+redis
+redislite
+redis-collections
+configargparse
+eth-account
+coincurve
