@@ -23,7 +23,9 @@ def main():
     p.add('-b', '--start-block', help="First block to start sync", required=False, env_var="START_BLOCK", default=8579313)
     p.add('-bl', '--black-listed-tokens', help="Uniswap tokens to ignore", required=False, env_var="UNISWAP_BLACKLIST", default="0xdac17f958d2ee523a2206206994597c13d831ec7")
     p.add('-wl', '--white-listed-tokens', help="Whitelist tokens to always relay", required=False, env_var="TOKEN_WHITELIST", default="")
-
+    p.add('-d', '--dump-file', help="Dump files directory", required=False, env_var="DUMP_FILE")
+    p.add('-l', '--load-file', help="Load files directory", required=False, env_var="LOAD_FILE")
+    p.add('-di', '--dump-interval', help="Dump all orders every x seconds", required=False, env_var="DUMP_INTERVAL", default=600)
     options = p.parse_args()
 
     logger = logging.getLogger("uniexecutor")

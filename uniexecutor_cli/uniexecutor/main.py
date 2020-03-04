@@ -1,6 +1,7 @@
 
 from .crawler import Crawler
 from .executor import Executor
+from .dumper import Dumper
 from .pool import Pool
 
 from redislite import Redis as RedisLite
@@ -18,10 +19,17 @@ def start(options):
 
     pool = Pool(redis)
 
+    if options.service == "dump":
+       pool.dump(options.dump_file)
+    elif options.dump_file:
+        Dumper(pool, options.dump_file, options.dump_interval)
+
+    if options.load_file:
+        pool.load(options.load_file)
+
     if options.service == "full" or options.service == "crawler":
         logger.info("Starting crawler, configured service {}".format(options.service))
         Crawler(pool, options.node, options.uniswap_ex, options.uniswap_factory, int(options.start_block), options.black_listed_tokens)
     if options.service == "full" or options.service == "executor":
         logger.info("Starting executor, configured service {}".format(options.service))
         Executor(pool, options.node, options.private_key, options.gas_multiplier, options.uniswap_ex, options.white_listed_tokens)
-

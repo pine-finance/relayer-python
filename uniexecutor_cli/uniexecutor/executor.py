@@ -16,6 +16,7 @@ from coincurve.keys import PrivateKey
 from web3.gas_strategies.time_based import fast_gas_price_strategy
 from Crypto.Hash import keccak
 import logging
+import time
 
 
 logger = logging.getLogger(__name__)
@@ -26,7 +27,6 @@ class Executor:
         self.node = node
         self.w3 = Web3(Web3.HTTPProvider(node))
         self.watcher = Watcher(self.w3)
-        self.internal_nonce = 0
         self.gas_multiplier = gas_multiplier
         self.account = Account.privateKeyToAccount(pk.replace('0x', ''))
         self.w3.eth.setGasPriceStrategy(fast_gas_price_strategy)
@@ -77,10 +77,7 @@ class Executor:
         return result
 
     def pull_nonce(self):
-        real_nonce = self.w3.eth.getTransactionCount(self.account.address)
-        nonce = max(self.internal_nonce, real_nonce)
-        self.internal_nonce = nonce + 1
-        return nonce        
+        return self.w3.eth.getTransactionCount(self.account.address)
 
     def check_and_fill_order(self, order):
         if not order or not order.fromToken or not order.toToken or not order.tx:
@@ -134,7 +131,28 @@ class Executor:
         logger.debug("Signed tx for order {}".format(order.tx))
         tx = Web3.toHex(self.w3.eth.sendRawTransaction(signed_txn.rawTransaction))
         logger.info("Relayed order {} tx {}".format(order.tx, tx))
+
+        if not self.wait_for_confirmation(tx, nonce):
+            return None
+
         return tx
+
+    def wait_for_confirmation(self, tx, nonce, timeout = 300):
+        start_time = time.time()
+        logger.info("Waiting confirmation for TX {}".format(tx))
+        while time.time() - start_time < timeout:
+            # Wait for the nonce to increase
+            try:
+                if self.w3.eth.getTransactionReceipt(tx):
+                    logger.info("TX {} confirmed (dettected by nonce increase)".format(tx))
+                    return True
+            except:
+                pass
+
+            time.sleep(5)
+        
+        logger.info("TX {} confirmation timeout".format(tx))
+        return False
 
     def check_open_orders(self):
         for order in self.pool.all():
