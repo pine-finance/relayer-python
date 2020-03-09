@@ -19,13 +19,13 @@ def start(options):
 
     pool = Pool(redis)
 
+    if options.load_file:
+        pool.load(options.load_file)
+
     if options.service == "dump":
        pool.dump(options.dump_file)
     elif options.dump_file:
         Dumper(pool, options.dump_file, options.dump_interval)
-
-    if options.load_file:
-        pool.load(options.load_file)
 
     if options.service == "full" or options.service == "crawler":
         logger.info("Starting crawler, configured service {}".format(options.service))

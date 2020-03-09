@@ -36,7 +36,7 @@ class OrderEncoder(JSONEncoder):
 
 class OrderDecoder(JSONDecoder):
     def __init__(self, *args, **kwargs):
-        json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
+        JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
     def object_hook(self, j):
         return Order(
             j["fromToken"],
